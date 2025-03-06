@@ -19,8 +19,8 @@ const Youtuber = require('./src/models/Youtuber');
 const PerfilYoutuber = require('./src/models/PerfilYoutuber');
 const Video = require('./src/models/Video');
 const Categoria = require('./src/models/Categoria');
+const LlistaReproduccio = require('./src/models/LlistaReproduccio');
 const { DataTypes } = require('sequelize');
-const { ListaReproduccion } = require('./src/models');
 
 // Definir el model VideosCategories que servirà com a taula d'unió
 const VideosCategories = sequelize.define('VideosCategories', {
@@ -45,8 +45,7 @@ const VideosCategories = sequelize.define('VideosCategories', {
   timestamps: false
 });
 
-// Definir el model VideosListaReproduccion que servirà com a taula d'unió *****
-const VideosListaReproduccion = sequelize.define('VideosListasReproduccion', {
+const VideoLlistaReproduccio = sequelize.define('VideosLlistesReproduccio', {
   video_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -55,19 +54,18 @@ const VideosListaReproduccion = sequelize.define('VideosListasReproduccion', {
       key: 'id'
     }
   },
-  listareproduccion_id: {
+  llista_reproduccio_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     references: {
-      model: ListaReproduccion,
+      model: LlistaReproduccio,
       key: 'id'
     }
   }
 }, {
-  tableName: 'videos_listareproduccion',
+  tableName: 'videos_llistes_reproduccio',
   timestamps: false
-});
-
+})
 
 // Configurar relacions
 Youtuber.hasOne(PerfilYoutuber, { foreignKey: 'youtuber_id' });
@@ -79,9 +77,10 @@ Video.belongsTo(Youtuber, { foreignKey: 'youtuber_id' });
 Video.belongsToMany(Categoria, { through: VideosCategories, foreignKey: 'video_id' });
 Categoria.belongsToMany(Video, { through: VideosCategories, foreignKey: 'categoria_id' });
 
-// ******
-Video.belongsToMany(ListaReproduccion, { through: VideosListaReproduccion, foreignKey: 'video_id' });
-ListaReproduccion.belongsToMany(Video, { through: VideosListaReproduccion, foreignKey: 'listareproduccion_id' });
+
+Video.belongsToMany(LlistaReproduccio, { through: VideoLlistaReproduccio, foreignKey: 'video_id' });
+LlistaReproduccio.belongsToMany(Video, { through: VideoLlistaReproduccio, foreign_key: 'llista_reproduccio_id' });
+
 
 // Rutes als arxius CSV
 const BASE_PATH = path.join(__dirname, process.env.DATA_DIR_PATH, 'youtubers_programacio');
@@ -89,10 +88,10 @@ const CSV_FILES = {
   YOUTUBERS: path.join(BASE_PATH, 'youtubers.csv'),
   PERFILS: path.join(BASE_PATH, 'youtuber_profiles.csv'),
   CATEGORIES: path.join(BASE_PATH, 'categories.csv'),
-  LISTAS_REPRODUCCION: path.join(BASE_PATH, 'listas_reproduccion.csv'),
   VIDEOS: path.join(BASE_PATH, 'videos.csv'),
+  LLISTES_REPRODUCCIO: path.join(BASE_PATH, 'llistes_reproduccio.csv'),
   VIDEOS_CATEGORIES: path.join(BASE_PATH, 'video_categories.csv'),
-  VIDEOS_LISTAS: path.join(BASE_PATH, 'video_listas.csv')
+  VIDEOS_LLISTES_REPRODUCCIO: path.join(BASE_PATH, 'videos_llistes_reproduccio.csv')
 };
 
 /**
@@ -229,6 +228,28 @@ async function carregarVideos(videos) {
 
 /**
  * Carrega les relacions entre vídeos i categories
+ * @param {Array} llistes_reproduccio Dades de relacions
+ */
+async function carregarLlistesReproduccio(llistes_reproduccio){
+  try {
+    logger.info(`Carregant ${llistes_reproduccio.length} llistes de reproducció...`);
+    
+    for (const llista_reproduccio of llistes_reproduccio) {
+      await LlistaReproduccio.create({
+        id: llista_reproduccio.id,
+        titol: llista_reproduccio.titol,
+      });
+    }
+    
+    logger.info("Llistes de reproducció carregades correctament");
+  } catch (error) {
+    logger.error("Error carregant llistes de reproducció:", error);
+    throw error;
+  }
+}
+
+/**
+ * Carrega les relacions entre vídeos i categories
  * @param {Array} videos_categories Dades de relacions
  */
 async function carregarVideosCategories(videos_categories) {
@@ -249,56 +270,27 @@ async function carregarVideosCategories(videos_categories) {
   }
 }
 
-
-// ***********************
-
-/**
- * Carrega els vídeos
- * @param {Array} videos Dades de vídeos
- */
-async function carregarListasReproduccion(listas) {
-  try {
-    logger.info(`Carregant ${listas.length} llistes de reporducció...`);
-    
-    for (const lista of listas) {
-      await ListaReproduccion.create({
-        id: lista.id,
-        titol: lista.name
-      });
-    }
-    
-    logger.info("Llistes de reproducció carregats correctament");
-  } catch (error) {
-    logger.error("Error carregant les llistes de reporducció:", error);
-    throw error;
-  }
-}
-
 /**
  * Carrega les relacions entre vídeos i categories
- * @param {Array} videos_categories Dades de relacions
+ * @param {Array} videos_llistes_reproducció Dades de relacions
  */
-async function carregarVideosLlistesReproduccio(videos_listareproduccion) {
+async function carregarVideosLlistesReproduccio(videos_llistes_reproduccio) {
   try {
-    logger.info(`Carregant ${videos_listareproduccion.length} relacions de vídeo-listareproduccion...`);
+    logger.info(`Carregant ${videos_llistes_reproduccio.length} relacions de vídeo-llista_reprodució...`);
     
-    for (const relacio of videos_listareproduccion) {
-      await VideosListaReproduccion.create({
+    for (const relacio of videos_llistes_reproduccio) {
+      await VideoLlistaReproduccio.create({
         video_id: relacio.video_id,
-        listareproduccion_id: relacio.listareproduccion_id
+        llista_reproduccio_id: relacio.llista_reproduccio_id,
       });
     }
     
-    logger.info("Relacions vídeo-listareproduccion carregades correctament");
+    logger.info("Relacions vídeo-llista_reproducció carregades correctament");
   } catch (error) {
-    logger.error("Error carregant relacions vídeo-listareproduccion:", error);
+    logger.error("Error carregant relacions vídeo-llista_reproducció:", error);
     throw error;
   }
 }
-
-
-// ***********************
-
 /**
  * Funció principal que coordina tot el procés de càrrega
  */
@@ -317,23 +309,19 @@ async function carregarTotesDades() {
     const youtubers = await llegirFitxerCsv(CSV_FILES.YOUTUBERS);
     const perfils = await llegirFitxerCsv(CSV_FILES.PERFILS);
     const categories = await llegirFitxerCsv(CSV_FILES.CATEGORIES);
-    console.log("PATH:", CSV_FILES)
     const videos = await llegirFitxerCsv(CSV_FILES.VIDEOS);
+    const llistes_reproduccio = await llegirFitxerCsv(CSV_FILES.LLISTES_REPRODUCCIO);
     const videos_categories = await llegirFitxerCsv(CSV_FILES.VIDEOS_CATEGORIES);
-    const listas_reproduccion = await llegirFitxerCsv(CSV_FILES.LISTAS_REPRODUCCION);
-    const videos_listareproduccion = await llegirFitxerCsv(CSV_FILES.VIDEOS_LISTAS); // ****
-
+    const videos_llistes_reproduccio = await llegirFitxerCsv(CSV_FILES.VIDEOS_LLISTES_REPRODUCCIO);
     
-    // Carregar les dades en ordre per respectar dependències ****
+    // Carregar les dades en ordre per respectar dependències
     await carregarYoutubers(youtubers);
     await carregarPerfils(perfils);
     await carregarCategories(categories);
-  
     await carregarVideos(videos);
+    await carregarLlistesReproduccio(llistes_reproduccio);
     await carregarVideosCategories(videos_categories);
-    await carregarListasReproduccion(listas_reproduccion);
-    await carregarVideosLlistesReproduccio(videos_listareproduccion);
-
+    await carregarVideosLlistesReproduccio(videos_llistes_reproduccio);
     
     logger.info("Totes les dades han estat carregades correctament a la base de dades!");
     

@@ -19,10 +19,8 @@ const CSV_FILES = {
     YOUTUBERS: 'youtubers.csv',
     PROFILES: 'youtuber_profiles.csv',
     CATEGORIES: 'categories.csv',
-    LISTAS_REPRODUCCION: 'listas_reproduccion.csv',
     VIDEOS: 'videos.csv',
-    VIDEO_CATEGORIES: 'video_categories.csv',
-    VIDEO_LISTAS: 'video_listas.csv'
+    VIDEO_CATEGORIES: 'video_categories.csv'
 };
 
 /**

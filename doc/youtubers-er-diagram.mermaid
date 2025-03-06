@@ -1,0 +1,44 @@
+erDiagram
+    Youtuber ||--o| PerfilYoutuber : "té"
+    Youtuber ||--o{ Video : "publica"
+    Video ||--o{ VideosCategories : "té"
+    Categoria ||--o{ VideosCategories : "té"
+    
+    Youtuber {
+        int id PK
+        string nom_canal "NOT NULL"
+        string nom_youtuber "NOT NULL"
+        text descripcio
+        string url_canal
+    }
+    
+    PerfilYoutuber {
+        int id PK
+        int youtuber_id FK
+        string url_twitter
+        string url_instagram
+        string url_web
+        string informacio_contacte
+    }
+    
+    Video {
+        int id PK
+        int youtuber_id FK
+        string titol "NOT NULL"
+        text descripcio
+        string url_video "NOT NULL"
+        date data_publicacio
+        int visualitzacions
+        int likes
+    }
+    
+    Categoria {
+        int id PK
+        string titol "NOT NULL"
+        text descripcio
+    }
+    
+    VideosCategories {
+        int video_id PK,FK
+        int categoria_id PK,FK
+    }
